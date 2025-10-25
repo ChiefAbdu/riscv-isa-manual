@@ -3028,6 +3028,7 @@ checks described in <<pma>>.
 
 The granularity of PMP access control settings are platform-specific,
 but the standard PMP encoding supports regions as small as four bytes.
+[#norm:param:M_mode_lower_priv] 
 Certain regions’ privileges can be hardwired—for example, some regions
 might only ever be visible in machine mode but in no lower-privilege
 layers.
@@ -3117,28 +3118,21 @@ include::images/bytefield/pmpaddr-rv32.edn[]
 .PMP address register format, RV64.
 include::images/bytefield/pmpaddr-rv64.edn[]
 
-<<pmpcfg>> shows the layout of a PMP configuration
-register. The R, W, and X bits, when set, indicate that the PMP entry
-permits read, write, and instruction execution, respectively. When one
-of these bits is clear, the corresponding access type is denied. The R,
-W, and X fields form a collective *WARL* field for which the combinations with R=0 and W=1 are reserved. The remaining two fields, A and L, are described in the following sections.
+[[norm:pmp_r_w_x_bit_check]]
+<<pmpcfg>> shows the layout of a PMP configuration register. The R, W, and X bits, when set, indicate that the PMP entry permits read, write, and instruction execution, respectively. When one of these bits is clear, the corresponding access type is denied. The R, W, and X fields form a collective *WARL* field for which the combinations with R=0 and W=1 are reserved. The remaining two fields, A and L, are described in the following sections.
 
 [[pmpcfg]]
 .PMP configuration register format.
 include::images/bytefield/pmpcfg.edn[]
 
 
-Attempting to fetch an instruction from a PMP region that does not have
-execute permissions raises an instruction access-fault exception.
-Attempting to execute a load or load-reserved instruction which accesses
-a physical address within a PMP region without read permissions raises a
-load access-fault exception. Attempting to execute a store,
-store-conditional, or AMO instruction which accesses a physical address
-within a PMP region without write permissions raises a store
-access-fault exception.
+[#norm:pmp_x_instr_fault]#Attempting to fetch an instruction from a PMP region that does not have execute permissions raises an instruction access-fault exception.#
+[#norm:pmp_r_load_fault]#Attempting to execute a load or load-reserved instruction which accesses a physical address within a PMP region without read permissions raises a load access-fault exception.#
+[#norm:pmp_w_store_fault]#Attempting to execute a store, store-conditional, or AMO instruction which accesses a physical address within a PMP region without write permissions raises a store access-fault exception.#
 
 ===== Address Matching
 
+[[norm:]]
 The A field in a PMP entry's configuration register encodes the
 address-matching mode of the associated PMP address register. The
 encoding of this field is shown in <<pmpcfg-a>>.
@@ -3206,6 +3200,7 @@ NAPOT
 2^XLEN+3^-byte NAPOT range
 |===
 
+[[norm:pmp_TOR_address]]
 If TOR is selected, the associated address register forms the top of the
 address range, and the preceding PMP address register forms the bottom
 of the address range. If PMP entry __i__'s A field is set to
@@ -3242,8 +3237,8 @@ Software may determine the PMP granularity by writing zero to `pmp0cfg`, then wr
 
 ===== Locking and Privilege Mode
 
-The L bit indicates that the PMP entry is locked, i.e., writes to the
-configuration register and associated address registers are ignored.
+[[norm:pmp_L_bit_lock]]
+The L bit indicates that the PMP entry is locked, i.e., writes to the configuration register and associated address registers are ignored.
 Locked PMP entries remain locked until the hart is reset. If PMP entry
 _i_ is locked, writes to ``pmp``__i__``cfg`` and ``pmpaddr``__i__ are ignored. Additionally, if PMP
 entry _i_ is locked and ``pmp``__i__``cfg.A`` is set
@@ -3255,6 +3250,7 @@ Setting the L bit locks the PMP entry even when the A field is set to
 OFF.
 ====
 
+[[norm:pmp_L_bit_mode_access]]
 In addition to locking the PMP entry, the L bit indicates whether the
 R/W/X permissions are enforced on M-mode accesses. When the L bit is
 set, these permissions are enforced for all privilege modes. When the L
